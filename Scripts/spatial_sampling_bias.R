@@ -10,12 +10,6 @@
 samp.bias.feature.dd <- function(dat) {
   
   names(dat)[ncol(dat)] <- "biasVar"
-  # Calculate distance decay from points
-  # wgt <- rast(dat[, c("X", "Y", "biasVar")], type = "xyz",
-  #             crs = "EPSG:4326")
-  # dist <- terra::distance(wgt)
-  # dist <- (1 - (dist / minmax(dist)[2,]))
-  
   # Create logistic decay
   dat$dist <- dat$biasVar
   for (B in c(0.6, 0.8, 1)) {
@@ -24,10 +18,6 @@ samp.bias.feature.dd <- function(dat) {
   }
   # Add random
   dat$wgt0 <- 1
-  # ggplot(dat, aes(x = X, y = Y)) +
-  #   geom_raster(aes(fill = wgt06)) +
-  #   geom_point(data = dat[dat$biasSeed == 1,]) +
-  #   scale_fill_viridis_b() + theme_bw()
   dat <- dat[,!(names(dat) %in% c("biasVar", "biasSeed", "dist"))]
   
 }

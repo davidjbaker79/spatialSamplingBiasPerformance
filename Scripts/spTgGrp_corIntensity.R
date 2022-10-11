@@ -5,6 +5,7 @@
 #' @return A data.frame 
 #' 
 #' @export
+dat = sp_in[, c("id", "X", "Y", "poc")]
 spTgGrp.corIntensity <- function(dat) {
   
   names(dat)[ncol(dat)] <- "biasVar"
@@ -21,18 +22,9 @@ spTgGrp.corIntensity <- function(dat) {
     dat[paste0("wgt", sub("\\.", "", B))] <-
       scales::rescale(1 / (1 + exp((dat$dist - (B^3)) / -0.1)))
   }
-  
-  # B = 1
-  # x <- seq(0,1, 0.1)
-  # y <- 1 / (1 + exp((x - (B^3)) / -0.1))
-  # ggplot() + geom_point(aes(x = x, y = y))
-  # 
+
   # Add random
   dat$wgt0 <- 1
-  # ggplot(dat, aes(x = X, y = Y)) +
-  #   geom_raster(aes(fill = wgt1)) +
-  #   geom_point(data = dat[dat$biasSeed == 1,]) +
-  #   scale_fill_viridis_c() + theme_bw()
   dat <- dat[,!(names(dat) %in% c("biasVar", "biasSeed", "dist"))]
   
 }

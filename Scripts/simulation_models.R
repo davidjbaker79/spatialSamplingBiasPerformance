@@ -31,6 +31,14 @@ for(i in 1:100) {
   # Create environmental data
   enviro <- generate.enviro(n = 50, phi = c(0.1, 1, 0.25, 0.25))
   
+  #- Methods figures
+  ggplot(data = enviro, aes(x = X, y = Y, fill = V1)) +
+    geom_raster() +
+    scale_fill_viridis_c() +
+    theme_minimal() %+replace%
+    theme(axis.text = element_blank(),
+          axis.title = element_blank())
+  
   # Create a stronger gradient
   enviro$V1 <- round(1 / (1 + exp((enviro$V1 - 0.5) / -0.1)), 3)
   

@@ -25,8 +25,5 @@ filter.occurrences <- function(x, y, fdis) {
   #- Thin data
   wdf <- wdf[rbinom(1:nrow(wdf), size = 1, prob = wdf$wgt) == 1,]
   wdf <- wdf[, names(y)]
-  # x_ii <- rast(wdf[, c("X", "Y", "det")], type = "xyz",
-  # crs = "EPSG:4326")
-  # plot(x_ii)
 
 }

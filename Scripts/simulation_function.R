@@ -71,14 +71,14 @@ run_ssb_sim <-
       trials <-
         data.frame(
           ssb_meth = c("spTgGrp", "featDD", "occBuff", "occFilter", "covCond"),
-          rep1 = c(1, "wgt06", 10 ^ 6, 2, 1),
-          rep2 = c(1, "wgt08", 10 ^ 6 / 2, 5, 2),
-          rep3 = c(1, "wgt1", 10 ^ 6 / 4, 10, 3),
-          rep4 = c(0, "wgt0", 0, 0, 0)
+          rep1 = c("wgt06", "wgt06", 1000000, 2, 1),
+          rep2 = c("wgt08", "wgt08", 500000, 5, 2),
+          rep3 = c("wgt1", "wgt1",   250000, 10, 3),
+          rep4 = c("wgt0", "wgt0", 0, 0, 0)
         )
       trials <- trials[trials$ssb_meth == ssb_meth, 2:5]
       
-      #- Run multiple correction strengths for cv x = 1
+      #- Run multiple correction strengths for cv x = trials[1,3]
       rep_all <- lapply(trials, function(x) {
         print(x)
         
@@ -114,7 +114,7 @@ run_ssb_sim <-
         
         #- Occurrence filtering with multiple filter distances
         if (ssb_meth == "occFilter" & x != "wgt0") {
-          spDat <- filter.occurrences(enviro, spDat, x)
+          spDat <- filter.occurrences(enviro, spDat, as.numeric(x))
         }
         
         #- Create occurrence buffers
@@ -123,7 +123,7 @@ run_ssb_sim <-
             samp_bias_x <-
               samp.bias.occ.buff(spDat[, c("X", "Y", "det")],
                                  enviro[, c("X", "Y", "id")],
-                                 x)
+                                 buf_w = as.numeric(x))
         }
         
         #- Create feature distance decay 
@@ -151,7 +151,7 @@ run_ssb_sim <-
         
         #- Combine
         spBkDat <- rbind(spDat, bkgd)
-        
+
         # Weight
         detN <- nrow(spBkDat[spBkDat$det == 1,])
         bkgN <- nrow(spBkDat[spBkDat$det == 0,])

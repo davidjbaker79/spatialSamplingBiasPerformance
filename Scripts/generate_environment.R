@@ -31,7 +31,6 @@ generate.enviro <- function(n = 10, phi = c(0.1, 0.1)) {
   # Visualize results
   gd <- rast(env_df, type = "xyz",crs = "EPSG:4326")
   gd <- disagg(gd, 5, method = "bilinear")
-  plot(gd)
   
   # Data frame
   env_df <- data.frame(crds(gd), terra::values(gd))

@@ -33,15 +33,7 @@ create.blocks <- function(dat, env, block.type, n_folds) {
         numLimit = NULL,
         biomod2Format = FALSE,
       )
-      ggplot(dat,
-             aes(
-               x = X,
-               y = Y,
-               colour = block
-             )) +
-        geom_point() + scale_colour_viridis_c()
     }
-    
     
     if (block.type == "spatial_sytematic") {
       bk <- spatialBlock(
