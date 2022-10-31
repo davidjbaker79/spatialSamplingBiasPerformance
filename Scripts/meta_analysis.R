@@ -30,7 +30,7 @@ sr_dat <-
     sheet = "dataExtraction",
     na = "NA"
   )
-names(sr_dat)
+
 #---
 #-- Classify bias correction methods into broad classes
 #---
@@ -153,22 +153,22 @@ ggsave(
 #-- Prepare model data
 #---
 
-#-- Subset data to just those with comparisons between naive and bias corrected
+#-- Subset data to just those with comparisons between uncorrected and corrected
 biasCorrEval <- sr_dat %>%
   filter(comparison_to_naive == "Yes",
          useInMa == 1) %>%
   filter(test_dataset != "Simulated") %>%
   mutate(
-    focal_m = as.numeric(focal_m),
-    focal_sd = as.numeric(focal_sd),
-    focal_n = as.numeric(focal_n),
-    focal_lci = as.numeric(focal_lci),
-    focal_uci = as.numeric(focal_uci),
-    naïve_m = as.numeric(naïve_m),
-    naïve_sd = as.numeric(naïve_sd),
-    naïve_n = as.numeric(naïve_n),
-    naïve_lci = as.numeric(naïve_lci),
-    naïve_uci = as.numeric(naïve_uci)
+    corrected_m = as.numeric(corrected_m),
+    corrected_sd = as.numeric(corrected_sd),
+    corrected_n = as.numeric(corrected_n),
+    corrected_lci = as.numeric(corrected_lci),
+    corrected_uci = as.numeric(corrected_uci),
+    uncorrected_m = as.numeric(uncorrected_m),
+    uncorrected_sd = as.numeric(uncorrected_sd),
+    uncorrected_n = as.numeric(uncorrected_n),
+    uncorrected_lci = as.numeric(uncorrected_lci),
+    uncorrected_uci = as.numeric(uncorrected_uci)
   ) %>%
   mutate(
     test_dataset =
@@ -214,24 +214,24 @@ grpByCols <- c(
 #-- Summarise at group_by levels
 biasCorrEval_values <- biasCorrEval %>%
   filter(quant_metric == "value")
-naïve_m <- biasCorrEval_values %>%
+uncorrected_m <- biasCorrEval_values %>%
   group_by(across(all_of(grpByCols))) %>%
-  summarise(naïve_m = mean(naïve_m, na.rm = TRUE))
-naïve_sd <- biasCorrEval_values %>%
+  summarise(uncorrected_m = mean(uncorrected_m, na.rm = TRUE))
+uncorrected_sd <- biasCorrEval_values %>%
   group_by(across(all_of(grpByCols))) %>%
-  summarise(naïve_sd = sd(naïve_m, na.rm = TRUE))
-naïve_n <- biasCorrEval_values %>%
+  summarise(uncorrected_sd = sd(uncorrected_m, na.rm = TRUE))
+uncorrected_n <- biasCorrEval_values %>%
   group_by(across(all_of(grpByCols))) %>%
-  summarise(naïve_n = length(naïve_m))
-focal_m <- biasCorrEval_values %>%
+  summarise(uncorrected_n = length(uncorrected_m))
+corrected_m <- biasCorrEval_values %>%
   group_by(across(all_of(grpByCols))) %>%
-  summarise(focal_m = mean(focal_m, na.rm = TRUE))
-focal_sd <- biasCorrEval_values %>%
+  summarise(corrected_m = mean(corrected_m, na.rm = TRUE))
+corrected_sd <- biasCorrEval_values %>%
   group_by(across(all_of(grpByCols))) %>%
-  summarise(focal_sd = sd(focal_m, na.rm = TRUE))
-focal_n <- biasCorrEval_values %>%
+  summarise(corrected_sd = sd(corrected_m, na.rm = TRUE))
+corrected_n <- biasCorrEval_values %>%
   group_by(across(all_of(grpByCols))) %>%
-  summarise(focal_n = length(focal_m))
+  summarise(corrected_n = length(corrected_m))
 
 #--- Meta data
 metaDat_values <- biasCorrEval_values %>%
@@ -247,25 +247,25 @@ metaDat_values <- biasCorrEval_values %>%
 biasCorrEval_values <- Reduce(
   function(...)
     left_join(...),
-  list(focal_m, focal_sd, focal_n,
-       naïve_m, naïve_sd, naïve_n)
+  list(corrected_m, corrected_sd, corrected_n,
+       uncorrected_m, uncorrected_sd, uncorrected_n)
 )
 
 #--- For results given as Quantile + Q1 and Q3 (i.e. from boxplots)
 biasCorrEval_iqr2msd <- biasCorrEval %>%
   filter(quant_metric == "median_iqr") %>%
   rename(
-    naïve_q1 = "naïve_lci",
-    naïve_q3 = "naïve_uci",
-    focal_q1 = "focal_lci",
-    focal_q3 = "focal_uci"
+    uncorrected_q1 = "uncorrected_lci",
+    uncorrected_q3 = "uncorrected_uci",
+    corrected_q1 = "corrected_lci",
+    corrected_q3 = "corrected_uci"
   ) %>%
   mutate(
-    naïve_m =  (naïve_q1 + naïve_m + naïve_q3) / 3,
-    naïve_sd = (naïve_q3 - naïve_q1) / (2 * qnorm((0.75 * naïve_n - 0.125) / (naïve_n + 0.25), 0, 1
+    uncorrected_m =  (uncorrected_q1 + uncorrected_m + uncorrected_q3) / 3,
+    uncorrected_sd = (uncorrected_q3 - uncorrected_q1) / (2 * qnorm((0.75 * uncorrected_n - 0.125) / (uncorrected_n + 0.25), 0, 1
     )),
-    focal_m =  (focal_q1 + focal_m + focal_q3) / 3,
-    focal_sd = (focal_q3 - focal_q1) / (2 * qnorm((0.75 * focal_n - 0.125) / (focal_n + 0.25), 0, 1
+    corrected_m =  (corrected_q1 + corrected_m + corrected_q3) / 3,
+    corrected_sd = (corrected_q3 - corrected_q1) / (2 * qnorm((0.75 * corrected_n - 0.125) / (corrected_n + 0.25), 0, 1
     ))
   ) %>%
   dplyr::select(names(biasCorrEval_values))
@@ -299,7 +299,7 @@ metaDat_msd <- biasCorrEval %>%
 biasCorrEval_msd <-
   do.call(rbind,
           list(biasCorrEval_values, biasCorrEval_iqr2msd, biasCorrEval_msd)) %>%
-  filter(focal_n > 2)
+  filter(corrected_n > 2)
 
 metaData <-
   do.call(rbind,
@@ -314,7 +314,7 @@ metaData <-
 
 #-- Individual points (i.e. with no +- SD)
 indiv_points <- biasCorrEval_values %>%
-  filter(is.na(focal_sd))
+  filter(is.na(corrected_sd))
 ns <-
   c(unique(biasCorrEval_msd$study_id),
     unique(indiv_points$study_id))
@@ -327,14 +327,14 @@ length(unique(biasCorrEval$study_id))
 #--- Plot all raw metric comparisons
 all_data_comp_p <- biasCorrEval_msd %>%
   mutate(
-    focal_1sd_u = focal_m + focal_sd,
-    focal_1sd_l = focal_m - focal_sd,
-    naive_1sd_u = naïve_m + naïve_sd,
-    naive_1sd_l = naïve_m - naïve_sd,
-    focal_1sd_u = ifelse(focal_1sd_u > 1, 1, focal_1sd_u),
-    focal_1sd_l = ifelse(focal_1sd_l < 0, 0, focal_1sd_l),
-    naive_1sd_u = ifelse(naive_1sd_u > 1, 1, naive_1sd_u),
-    naive_1sd_l = ifelse(naive_1sd_l < 0, 0, naive_1sd_l)
+    corrected_1sd_u = corrected_m + corrected_sd,
+    corrected_1sd_l = corrected_m - corrected_sd,
+    uncorrected_1sd_u = uncorrected_m + uncorrected_sd,
+    uncorrected_1sd_l = uncorrected_m - uncorrected_sd,
+    corrected_1sd_u = ifelse(corrected_1sd_u > 1, 1, corrected_1sd_u),
+    corrected_1sd_l = ifelse(corrected_1sd_l < 0, 0, corrected_1sd_l),
+    uncorrected_1sd_u = ifelse(uncorrected_1sd_u > 1, 1, uncorrected_1sd_u),
+    uncorrected_1sd_l = ifelse(uncorrected_1sd_l < 0, 0, uncorrected_1sd_l)
   ) %>%
   mutate(
     test_dataset =
@@ -344,24 +344,24 @@ all_data_comp_p <- biasCorrEval_msd %>%
   ) %>%
   ggplot(
     aes(
-      x = naïve_m,
-      y = focal_m,
+      x = uncorrected_m,
+      y = corrected_m,
       colour = bias_correction_method,
       shape = performance_metric
     ),
     alpha = 0.5
   ) +
-  geom_errorbarh(aes(xmin = naive_1sd_l,
-                     xmax = naive_1sd_u),
+  geom_errorbarh(aes(xmin = uncorrected_1sd_l,
+                     xmax = uncorrected_1sd_u),
                  alpha = 0.2) +
-  geom_errorbar(aes(ymin = focal_1sd_l,
-                    ymax = focal_1sd_u),
+  geom_errorbar(aes(ymin = corrected_1sd_l,
+                    ymax = corrected_1sd_u),
                 alpha = 0.2) +
   geom_point() +
   geom_point(
     aes(
-      x = naïve_m,
-      y = focal_m,
+      x = uncorrected_m,
+      y = corrected_m,
       colour = bias_correction_method,
       shape = performance_metric
     ),
@@ -370,8 +370,8 @@ all_data_comp_p <- biasCorrEval_msd %>%
   ) +
   geom_point(
     aes(
-      x = naïve_m,
-      y = focal_m,
+      x = uncorrected_m,
+      y = corrected_m,
       colour = bias_correction_method,
       shape = performance_metric
     ),
@@ -419,7 +419,7 @@ ggsave(
 biasCorrEval_msd %>%
   #filter(performance_metric == "AUC") %>%
   rowwise() %>%
-  mutate(sc = ifelse(focal_m >= naïve_m, 1, 0)) %>%
+  mutate(sc = ifelse(corrected_m >= uncorrected_m, 1, 0)) %>%
   ungroup() %>%
   dplyr::select(sc) %>%
   table()
@@ -428,21 +428,21 @@ biasCorrEval_msd %>%
 #--- Calculate effect sizes: Cohen's d and Hedge's g
 biasCorrEval_d <-
   biasCorrEval_msd  %>%
-  filter(!is.na(naïve_m)) %>%
-  mutate(m_diff = focal_m - naïve_m) %>%
+  filter(!is.na(uncorrected_m)) %>%
+  mutate(m_diff = corrected_m - uncorrected_m) %>%
   rowwise() %>%
   mutate(
-    S_within = sqrt((((naïve_n - 1) * naïve_sd ^ 2
+    S_within = sqrt((((uncorrected_n - 1) * uncorrected_sd ^ 2
     ) +
-      ((focal_n - 1) * focal_sd ^ 2
-      )) / ((naïve_n - 1) + (focal_n - 1))),
-    J = 1 - (3 / (4 * (naïve_n + focal_n - 2) - 1)),
+      ((corrected_n - 1) * corrected_sd ^ 2
+      )) / ((uncorrected_n - 1) + (corrected_n - 1))),
+    J = 1 - (3 / (4 * (uncorrected_n + corrected_n - 2) - 1)),
     d = (m_diff / S_within),
     d = ifelse(is.na(d), m_diff, d),
     g = (m_diff / S_within) * J,
     g = ifelse(is.na(g), m_diff, g),
-    Vd = (naïve_n + focal_n) / ((naïve_n * focal_n) + (d ^ 2 / (
-      2 * (naïve_n + focal_n)
+    Vd = (uncorrected_n + corrected_n) / ((uncorrected_n * corrected_n) + (d ^ 2 / (
+      2 * (uncorrected_n + corrected_n)
     ))),
     SEd = sqrt(Vd),
     invSEd = 1 / SEd,
@@ -475,7 +475,7 @@ ssb_cor_d %>%
 #' specific mean and variation in effect sizes.
 fx_d <- ssb_cor_d %>%
   rowwise %>%
-  mutate(pN = focal_n + naïve_n) %>%
+  mutate(pN = corrected_n + uncorrected_n) %>%
   group_by(test_dataset, bias_correction_method, study_id) %>%
   summarise(gm = weighted.mean(g, pN, na.rm = TRUE),
             gsd = sqrt(
@@ -732,7 +732,7 @@ ml <-
     "NNET",
     "SVM",
     "SRE",
-    "Naïve bayes",
+    "uncorrected bayes",
     "RF"
   )
 ssb_d_met$modClass[ssb_d_met$sdm_method %in% ml] <-
